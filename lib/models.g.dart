@@ -257,29 +257,29 @@ class $EmployeesTable extends Employees
 
 class Job extends DataClass implements Insertable<Job> {
   final int id;
-  final String name;
-  Job({required this.id, required this.name});
+  final String title;
+  Job({required this.id, required this.title});
   factory Job.fromData(Map<String, dynamic> data, {String? prefix}) {
     final effectivePrefix = prefix ?? '';
     return Job(
       id: const IntType()
           .mapFromDatabaseResponse(data['${effectivePrefix}id'])!,
-      name: const StringType()
-          .mapFromDatabaseResponse(data['${effectivePrefix}name'])!,
+      title: const StringType()
+          .mapFromDatabaseResponse(data['${effectivePrefix}title'])!,
     );
   }
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
+    map['title'] = Variable<String>(title);
     return map;
   }
 
   JobsCompanion toCompanion(bool nullToAbsent) {
     return JobsCompanion(
       id: Value(id),
-      name: Value(name),
+      title: Value(title),
     );
   }
 
@@ -288,7 +288,7 @@ class Job extends DataClass implements Insertable<Job> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Job(
       id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
+      title: serializer.fromJson<String>(json['title']),
     );
   }
   @override
@@ -296,56 +296,56 @@ class Job extends DataClass implements Insertable<Job> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
+      'title': serializer.toJson<String>(title),
     };
   }
 
-  Job copyWith({int? id, String? name}) => Job(
+  Job copyWith({int? id, String? title}) => Job(
         id: id ?? this.id,
-        name: name ?? this.name,
+        title: title ?? this.title,
       );
   @override
   String toString() {
     return (StringBuffer('Job(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('title: $title')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, title);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Job && other.id == this.id && other.name == this.name);
+      (other is Job && other.id == this.id && other.title == this.title);
 }
 
 class JobsCompanion extends UpdateCompanion<Job> {
   final Value<int> id;
-  final Value<String> name;
+  final Value<String> title;
   const JobsCompanion({
     this.id = const Value.absent(),
-    this.name = const Value.absent(),
+    this.title = const Value.absent(),
   });
   JobsCompanion.insert({
     this.id = const Value.absent(),
-    required String name,
-  }) : name = Value(name);
+    required String title,
+  }) : title = Value(title);
   static Insertable<Job> custom({
     Expression<int>? id,
-    Expression<String>? name,
+    Expression<String>? title,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (name != null) 'name': name,
+      if (title != null) 'title': title,
     });
   }
 
-  JobsCompanion copyWith({Value<int>? id, Value<String>? name}) {
+  JobsCompanion copyWith({Value<int>? id, Value<String>? title}) {
     return JobsCompanion(
       id: id ?? this.id,
-      name: name ?? this.name,
+      title: title ?? this.title,
     );
   }
 
@@ -355,8 +355,8 @@ class JobsCompanion extends UpdateCompanion<Job> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
     }
     return map;
   }
@@ -365,7 +365,7 @@ class JobsCompanion extends UpdateCompanion<Job> {
   String toString() {
     return (StringBuffer('JobsCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('title: $title')
           ..write(')'))
         .toString();
   }
@@ -382,15 +382,15 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, Job> {
       type: const IntType(),
       requiredDuringInsert: false,
       defaultConstraints: 'PRIMARY KEY AUTOINCREMENT');
-  final VerificationMeta _nameMeta = const VerificationMeta('name');
+  final VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<String?> name = GeneratedColumn<String?>(
-      'name', aliasedName, false,
+  late final GeneratedColumn<String?> title = GeneratedColumn<String?>(
+      'title', aliasedName, false,
       additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 100),
       type: const StringType(),
       requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  List<GeneratedColumn> get $columns => [id, title];
   @override
   String get aliasedName => _alias ?? 'jobs';
   @override
@@ -403,11 +403,11 @@ class $JobsTable extends Jobs with TableInfo<$JobsTable, Job> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('name')) {
+    if (data.containsKey('title')) {
       context.handle(
-          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
     } else if (isInserting) {
-      context.missing(_nameMeta);
+      context.missing(_titleMeta);
     }
     return context;
   }
