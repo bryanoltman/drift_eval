@@ -45,7 +45,7 @@ class MyDatabase extends _$MyDatabase {
   Future<List<Employee>> get allEmployees => select(employees).get();
 
   Stream<List<Employee>> employeesWithJobId(int jobId) =>
-      (select(employees)..where((tbl) => tbl.id.equals(jobId))).watch();
+      (select(employees)..where((tbl) => tbl.jobId.equals(jobId))).watch();
 
   Future<int> addJob(String title) async {
     final companion = JobsCompanion(title: Value(title));

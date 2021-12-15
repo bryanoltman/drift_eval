@@ -36,6 +36,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
+  void initState() {
+    super.initState();
+    final db = Provider.of<MyDatabase>(context, listen: false);
+    db.allJobs.first.then((allJobs) {
+      if (allJobs.isEmpty) {
+        db.addJob('SWE');
+        db.addJob('Manager');
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final db = Provider.of<MyDatabase>(context, listen: false);
     return Scaffold(
