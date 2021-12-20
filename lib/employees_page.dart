@@ -1,3 +1,4 @@
+import 'package:drift_eval/add_entity_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,36 +14,12 @@ class EmployeesPage extends StatefulWidget {
 }
 
 class _EmployeesPageState extends State<EmployeesPage> {
-  Future<void> showAddEmployeeDialog() async {
-    final textController = TextEditingController();
-    return showDialog(
+  Future<void> showAddEmployeeDialog() async => showAddEntityDialog(
         context: context,
-        builder: (context) {
-          final db = Provider.of<MyDatabase>(context, listen: false);
-          return AlertDialog(
-            title: const Text('New Employee'),
-            content: TextField(
-              controller: textController,
-            ),
-            actions: [
-              ElevatedButton(
-                child: const Text('Cancel'),
-                onPressed: Navigator.of(context).pop,
-              ),
-              ElevatedButton(
-                child: const Text('Submit'),
-                onPressed: () async {
-                  await db.addEmployee(
-                    name: textController.text,
-                    jobId: widget.job.id,
-                  );
-                  Navigator.of(context).pop();
-                },
-              )
-            ],
-          );
-        });
-  }
+        title: 'Add Employee',
+        onSubmit: (db, name) =>
+            db.addEmployee(name: name, jobId: widget.job.id),
+      );
 
   @override
   Widget build(BuildContext context) {

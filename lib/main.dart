@@ -1,8 +1,10 @@
-import 'package:drift_eval/employees_page.dart';
+import 'package:drift_eval/jobs_page.dart';
 import 'package:flutter/material.dart';
 
 import 'package:drift_eval/models.dart';
 import 'package:provider/provider.dart';
+
+import 'animals_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,50 +37,39 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  @override
-  void initState() {
-    super.initState();
-    final db = Provider.of<MyDatabase>(context, listen: false);
-    db.allJobs.first.then((allJobs) {
-      if (allJobs.isEmpty) {
-        db.addJob('SWE');
-        db.addJob('Manager');
-      }
-    });
+  int _currentTabIndex = 0;
+
+  Widget pageAtTabIndex(int index) {
+    if (index == 0) {
+      return const Navigator(
+        pages: [MaterialPage(child: JobsPage())],
+      );
+    } else {
+      return const Navigator(
+        pages: [MaterialPage(child: AnimalsPage())],
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final db = Provider.of<MyDatabase>(context, listen: false);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Jobs'),
-      ),
-      body: StreamBuilder<List<Job>>(
-        stream: db.allJobs,
-        builder: (context, snapshot) {
-          final data = snapshot.data;
-          if (data == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return ListView.separated(
-            itemBuilder: (context, index) => ListTile(
-              title: Text(data[index].title),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (ctx) => EmployeesPage(
-                    job: data[index],
-                  ),
-                ),
-              ),
-            ),
-            separatorBuilder: (context, index) => const Divider(),
-            itemCount: data.length,
-          );
-        },
+      body: pageAtTabIndex(_currentTabIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentTabIndex,
+        onTap: (index) => setState(() {
+          _currentTabIndex = index;
+        }),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work),
+            label: 'Jobs',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.pets),
+            label: 'Animals',
+          ),
+        ],
       ),
     );
   }

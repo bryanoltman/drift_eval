@@ -19,6 +19,19 @@ class Jobs extends Table {
   TextColumn get title => text().withLength(max: 100)();
 }
 
+class Animals extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(max: 100)();
+}
+
+class Cats extends Animals {
+  IntColumn get numLives => integer()();
+}
+
+class Dogs extends Animals {
+  BoolColumn get goesToHeaven => boolean()();
+}
+
 LazyDatabase _openConnection() {
   // the LazyDatabase util lets us find the right location for the file async.
   return LazyDatabase(() async {
@@ -30,7 +43,12 @@ LazyDatabase _openConnection() {
   });
 }
 
-@DriftDatabase(tables: [Employees, Jobs])
+@DriftDatabase(tables: [
+  Employees,
+  Jobs,
+  Cats,
+  Dogs,
+])
 class MyDatabase extends _$MyDatabase {
   // we tell the database where to store the data with this constructor
   MyDatabase() : super(_openConnection());
@@ -58,5 +76,25 @@ class MyDatabase extends _$MyDatabase {
       jobId: Value(jobId),
     );
     return into(employees).insert(companion);
+  }
+
+  Stream<List<Cat>> get allCats => select(cats).watch();
+
+  Stream<List<Dog>> get allDogs => select(dogs).watch();
+
+  Future<int> addCat({required String name, required int numLives}) {
+    final companion = CatsCompanion.insert(
+      name: name,
+      numLives: numLives,
+    );
+    return into(cats).insert(companion);
+  }
+
+  Future<int> addDog({required String name, required bool goesToHeaven}) {
+    final companion = DogsCompanion.insert(
+      name: name,
+      goesToHeaven: goesToHeaven,
+    );
+    return into(dogs).insert(companion);
   }
 }
