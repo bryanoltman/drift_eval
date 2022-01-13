@@ -845,6 +845,7 @@ class $DogsTable extends Dogs with TableInfo<$DogsTable, Dog> {
 
 abstract class _$MyDatabase extends GeneratedDatabase {
   _$MyDatabase(QueryExecutor e) : super(SqlTypeSystem.defaultInstance, e);
+  _$MyDatabase.connect(DatabaseConnection c) : super.connect(c);
   late final $EmployeesTable employees = $EmployeesTable(this);
   late final $JobsTable jobs = $JobsTable(this);
   late final $CatsTable cats = $CatsTable(this);

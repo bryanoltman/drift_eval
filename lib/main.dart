@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Provider.value(
-      value: MyDatabase(),
+      value: MyDatabase.create(),
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -41,12 +41,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget pageAtTabIndex(int index) {
     if (index == 0) {
-      return const Navigator(
+      return Navigator(
         pages: [MaterialPage(child: JobsPage())],
+        onPopPage: (route, result) {
+          return route.didPop(result);
+        },
       );
     } else {
-      return const Navigator(
+      return Navigator(
         pages: [MaterialPage(child: AnimalsPage())],
+        onPopPage: (route, result) {
+          return route.didPop(result);
+        },
       );
     }
   }

@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:drift/drift.dart';
+import 'package:drift/isolate.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -32,15 +35,52 @@ class Dogs extends Animals {
   BoolColumn get goesToHeaven => boolean()();
 }
 
-LazyDatabase _openConnection() {
-  // the LazyDatabase util lets us find the right location for the file async.
-  return LazyDatabase(() async {
-    // put the database file, called db.sqlite here, into the documents folder
-    // for your app.
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'db.sqlite'));
-    return NativeDatabase(file);
-  });
+Future<DriftIsolate> _createDriftIsolate() async {
+  // this method is called from the main isolate. Since we can't use
+  // getApplicationDocumentsDirectory on a background isolate, we calculate
+  // the database path in the foreground isolate and then inform the
+  // background isolate about the path.
+  final dir = await getApplicationDocumentsDirectory();
+  final path = p.join(dir.path, 'db.sqlite');
+  final receivePort = ReceivePort();
+
+  await Isolate.spawn(
+    _startBackground,
+    _IsolateStartRequest(receivePort.sendPort, path),
+  );
+
+  // _startBackground will send the DriftIsolate to this ReceivePort
+  return await receivePort.first as DriftIsolate;
+}
+
+void _startBackground(_IsolateStartRequest request) {
+  // this is the entry point from the background isolate! Let's create
+  // the database from the path we received
+  final executor = NativeDatabase(File(request.targetPath));
+  // we're using DriftIsolate.inCurrent here as this method already runs on a
+  // background isolate. If we used DriftIsolate.spawn, a third isolate would be
+  // started which is not what we want!
+  final driftIsolate = DriftIsolate.inCurrent(
+    () => DatabaseConnection.fromExecutor(executor),
+  );
+  // inform the starting isolate about this, so that it can call .connect()
+  request.sendDriftIsolate.send(driftIsolate);
+}
+
+// used to bundle the SendPort and the target path, since isolate entry point
+// functions can only take one parameter.
+class _IsolateStartRequest {
+  final SendPort sendDriftIsolate;
+  final String targetPath;
+
+  _IsolateStartRequest(this.sendDriftIsolate, this.targetPath);
+}
+
+DatabaseConnection getConnection() {
+  return DatabaseConnection.delayed(() async {
+    final isolate = await _createDriftIsolate();
+    return await isolate.connect();
+  }());
 }
 
 @DriftDatabase(tables: [
@@ -50,8 +90,12 @@ LazyDatabase _openConnection() {
   Dogs,
 ])
 class MyDatabase extends _$MyDatabase {
-  // we tell the database where to store the data with this constructor
-  MyDatabase() : super(_openConnection());
+  factory MyDatabase.create() {
+    DatabaseConnection connection = getConnection();
+    return MyDatabase.connect(connection);
+  }
+
+  MyDatabase.connect(DatabaseConnection connection) : super.connect(connection);
 
   // you should bump this number whenever you change or add a table definition. Migrations
   // are covered later in this readme.
@@ -60,7 +104,7 @@ class MyDatabase extends _$MyDatabase {
 
   Stream<List<Job>> get allJobs => select(jobs).watch();
 
-  Future<List<Employee>> get allEmployees => select(employees).get();
+  Stream<List<Employee>> get allEmployees => select(employees).watch();
 
   Stream<List<Employee>> employeesWithJobId(int jobId) =>
       (select(employees)..where((tbl) => tbl.jobId.equals(jobId))).watch();

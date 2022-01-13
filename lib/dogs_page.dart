@@ -11,12 +11,22 @@ class DogsPage extends StatefulWidget {
 }
 
 class _DogsPageState extends State<DogsPage> {
+  Future<void> insertLotsOfDogs(MyDatabase db, String name) async {
+    for (int i = 0; i < 100000; i++) {
+      if (i % 500 == 0) {
+        print('inserting dog $i');
+      }
+      await db.addDog(name: name, goesToHeaven: true);
+    }
+  }
+
   Future<void> showAddDogDialog() async {
     return showAddEntityDialog(
-      context: context,
-      title: 'Add Dog',
-      onSubmit: (db, name) => db.addDog(name: name, goesToHeaven: true),
-    );
+        context: context,
+        title: 'Add Dog',
+        onSubmit: (db, name) async {
+          await insertLotsOfDogs(db, name);
+        });
   }
 
   @override
